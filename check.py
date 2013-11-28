@@ -36,9 +36,10 @@ tests = {'size' : {'test' : "len(data) > min_bytes",
 
 # logging
 log = logging.getLogger("webcheck")
+log.setLevel(logging.DEBUG)
 logfmt = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s", datefmt)
 filelog = logging.FileHandler("webcheck.log", "w")
-filelog.setLevel(logging.DEBUG)
+filelog.setLevel(logging.INFO)
 filelog.setFormatter(logfmt)
 maillog = SMTPHandler(maillog_smtpserver, maillog_sender, maillog_receivers, "webcheck error")
 maillog.setLevel(logging.ERROR)
