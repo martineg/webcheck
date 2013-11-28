@@ -51,10 +51,11 @@ dbc.row_factory = sqlite3.Row
 cur = dbc.cursor()
 
 class WebCheck(threading.Thread):
-    def __init__(self, site):
+    def __init__(self, site, uri):
         threading.Thread.__init__(self)
         self.site = site
-        self.setName("%s" % site)
+        self.uri = uri
+        self.setName("%s%s" % (site, uri))
         self.timestamp = time.time()
         self.status = ()
     # __init__()
@@ -62,7 +63,7 @@ class WebCheck(threading.Thread):
     def run(self):
         log.debug("%s starting" % (self.getName()))
         try:
-            self.status = check_t(self.site)
+            self.status = check_t(self.site, self.uri)
         except socket.timeout:
             log.error("%s did not respond within %d seconds" % (self.site, crit_timeout))
         except socket.error, d:
@@ -82,12 +83,12 @@ log.info("Starting checks")
 running_checks = []
 
 # fetch sites
-cur.execute("SELECT hostname FROM site")
-sites = [ r["hostname"] for r in cur.fetchall() ]
+sql = ("SELECT hostname, uri FROM site")
+sites = { r["hostname"] : r["uri"] or "/" for r in cur.execute(sql) }
 
 # startup
-for s in sites:
-    cur_check = WebCheck(s)
+for site, uri in sites.items():
+    cur_check = WebCheck(site, uri)
     cur_check.start()
     running_checks.append(cur_check)
 
